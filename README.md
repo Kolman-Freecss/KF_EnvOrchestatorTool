@@ -15,6 +15,10 @@ This tool is used to serve an automated environment in local or cloud platform t
 - [Configuration](#configuration)
 - [Dependencies](#dependencies)
 - [Tech stacks CI/CD](#tech-stacks-ci/cd)
+- [Troubleshoting](#troubleshoting)
+    - [Jenkins](#jenkins)
+    - [Scripts](#scripts)
+    - [AWS](#aws)
 
 # Systems
 
@@ -173,15 +177,12 @@ docker push kolmanfreecss/jenkins-git
 
 # Troubleshoting
 
+## Jenkins
 - Script to install Jenkins not working properly.
     - Alternative Solution: Connect through SSH to the EC2 instance and install Jenkins
       manually. (https://mirrors.jenkins.io/redhat-stable/)
         - After that connect to the IPv4 Public EC2 instance with HTTP protocol and port 8080.
             - Example: http://YOUR_EC2_PUBLIC_IP:8080
-- Check SSH key permissions to connect to EC2 instance.
-    - `chmod 400 my-ssh-key.pem`
-    - Remove permissions to other group users or another users because AWS won't let you connect to the EC2 instance if
-      the permissions are too permissive.
 - Check EC2 system log from AWS section to see if Jenkins is running properly or installed.
 - BIG Problems installing plugins https://community.jenkins.io/t/issue-while-upgrading-plugins-on-latest-jenkins/9846
     - It seems that halifax has blocked the ISP, so we need to install the plugins manually or use another ISP in order
@@ -206,6 +207,19 @@ docker push kolmanfreecss/jenkins-git
         - ```bash
       aws ec2 get-console-output --instance-id YOUR_INSTANCE_ID --output text
       ```
+      
+## Scripts
+
+- Use `dos2unix` to convert the scripts to Unix format.
+    - ```bash
+      dos2unix YOUR_SCRIPT.sh
+      ```
+      
+## AWS
+- Check SSH key permissions to connect to EC2 instance.
+    - `chmod 400 my-ssh-key.pem`
+    - Remove permissions to other group users or another users because AWS won't let you connect to the EC2 instance if
+      the permissions are too permissive.
 
 ---
 

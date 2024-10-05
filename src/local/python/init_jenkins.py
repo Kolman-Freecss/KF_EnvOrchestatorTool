@@ -1,4 +1,5 @@
 import os
+import platform
 import subprocess
 
 import requests
@@ -14,17 +15,45 @@ jenkins_credentials_id = os.getenv('JENKINS_CREDENTIALS_ID')
 
 # ------------------------------- Methods -------------------------------
 
-def create_ssh_key():
+def create_ssh_key() -> str:
+    """
+    Generate an SSH key pair if it does not exist.
+    :return: The private key as a string. None if the private key is not found.
+    """
+    gen_private_key = None
+    ssh_dir = os.path.expanduser('~/.ssh')
+    ssh_key_path = os.path.join(ssh_dir, 'id_rsa')
+
+    if not os.path.exists(ssh_dir):
+        os.makedirs(ssh_dir)
+        print(f"Directory {ssh_dir} created.")
+
     # Generate an SSH key pair
-    print("Generating an SSH key pair...")
-    ssh_keygen = subprocess.run(['ssh-keygen', '-t', 'rsa', '-N', '', '-f', 'jenkins_rsa'], check=True)
-    print("SSH key pair generated successfully.")
+    if os.path.exists(ssh_key_path) and os.path.getsize(ssh_key_path) > 0:
+        print(f"PY -> SSH key pair already exists at {ssh_key_path}.")
+    else:
+        print("Generating an SSH key pair...")
+        script_path = './sh/gen_ssh.sh'
+        # Check the OS and run the corresponding script
+        if platform.system() == 'Windows':
+            script_path = os.path.abspath('./sh/gen_ssh.bat')
+            print(f"Running the batch script: {script_path}")
+            # Execute the batch script for Windows
+            subprocess.run([script_path], check=True, shell=True)
+        else:
+            print(f"Running the shell script: {script_path}")
+            # Execute the shell script for Unix-like environments
+            subprocess.run(['bash', script_path], check=True)
+        try:
+            with open(ssh_key_path, 'r') as private_key_file:
+                gen_private_key = private_key_file.read()
+                print(f"Private key: {gen_private_key}")
+        except FileNotFoundError:
+            print(f"Private key not found at {ssh_key_path}.")
+            return ""
+        print("SSH key pair generated successfully.")
 
-    # Read the public key
-    with open('jenkins_rsa.pub', 'r') as public_key_file:
-        public_key = public_key_file.read()
-
-    return public_key
+    return gen_private_key
 
 # ------------------------------- END Methods -------------------------------
 
@@ -33,7 +62,7 @@ def create_ssh_key():
 print(f"JENKINS INFO -> Jenkins URL: {jenkins_url}, Username: {username}, API Token: {api_token}")
 
 # ----------- Generate SSH key pair -----------
-create_ssh_key()
+private_key = create_ssh_key() # Get the private key from the SSH key pair to connect Jenkins node via SSH to the agent (machine defined)
 
 # Connect to the Jenkins server
 jenkins_service = jenkins.Jenkins(jenkins_url, username, api_token)
@@ -104,7 +133,7 @@ try:
     params = {
         'port': '22',
         'username': username,
-        'credentialsId': jenkins_credentials_id,
+        'credentialsId': api_token, # private_key
         'host': 'host.docker.internal' # Is the host where jenkins docker is running
     }
     print("Creating node with parameters")
