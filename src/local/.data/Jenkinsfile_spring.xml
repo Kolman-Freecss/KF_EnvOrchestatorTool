@@ -1,0 +1,41 @@
+<?xml version='1.1' encoding='UTF-8'?>
+<flow-definition plugin="workflow-job@2.40">
+  <description>Pipeline de despliegue con Dockerfile embebido</description>
+  <keepDependencies>false</keepDependencies>
+  <properties/>
+  <definition class="org.jenkinsci.plugins.workflow.cps.CpsFlowDefinition" plugin="workflow-cps@2.92">
+    <script>
+      pipeline {
+        agent {
+            label 'docker-node' // Jenkins node pre configured with Docker integration
+        }
+        stages {
+            stage('Clone Repo') {
+                steps {
+                    git branch: 'master',
+                        url: 'https://github.com/Kolman-Freecss/KF_EnvOrchestatorTool.git',
+                        credentialsId: 'github-credentials'
+                }
+            }
+            stage('Build Image Docker') {
+                steps {
+                    script {
+                        sh 'docker build -t kf-spring-image .'  // Build the Dockerfile in the current directory
+                    }
+                }
+            }
+            stage('Deploy container') {
+                steps {
+                    script {
+                        sh 'docker run -d --name kf-spring -p 8081:8081 kf-spring-image'  // Launch the container with the image built
+                    }
+                }
+            }
+        }
+    }
+    </script>
+    <sandbox>true</sandbox>
+  </definition>
+  <triggers/>
+  <disabled>false</disabled>
+</flow-definition>

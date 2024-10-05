@@ -1,0 +1,54 @@
+version: '3.8'
+
+services:
+  jenkins:
+    build:
+      context: .  # Path where the Dockerfile is located
+      dockerfile: Dockerfile  # Name of the Dockerfile
+    container_name: kf-jenkins
+    user: root
+    privileged: true
+    ports:
+      - "8080:8080"  # UI Jenkins
+      - "50000:50000" # Jenkins agents
+    environment:
+      - TINI_SUBREAPER=1  # Register Tini as a subreaper (to not need to use Tini as PID 1)
+    volumes:
+      - jenkins_home:/var/jenkins_home # Volume for Jenkins data
+      - ./init-scripts:/var/jenkins_init_scripts # We mount the init scripts
+      - ./jenkins_plugins:/var/jenkins_home/plugins # We mount the plugins
+    entrypoint: ["/bin/bash", "-c", "/usr/bin/tini -- /usr/local/bin/jenkins.sh && dockerd > /var/log/dockerd.log 2>&1 && tail -f /dev/null"]
+    healthcheck:
+      test: ["CMD-SHELL", "curl -sS http://localhost:8080/login || exit 1"]
+      interval: 30s
+      retries: 5
+      start_period: 30s
+      timeout: 10s
+
+  # This service is used to initialize the Jenkins server
+  python-init:
+    image: python:3.10
+    container_name: kf-jenkins-init
+    volumes:
+      - ./python:/usr/src/app
+      - ./.data:/usr/src/app/data
+      - ./requirements.txt:/usr/src/app/requirements.txt
+    working_dir: /usr/src/app
+    environment:
+      - JENKINS_URL=http://kf-jenkins:8080
+      - JENKINS_USER=admin
+      - JENKINS_PASS=admin
+      - GITHUB_CREDENTIALS_ID=github-credentials
+      - GITHUB_USER=Kolman_Freecss
+      # TODO: This is a temporary PAT, it should be replaced by a secret (in prod environment) or not synch with the repository
+      - PAT_JENKINS=
+      - EXECUTION_ENVIRONMENT=docker-local
+    command: >
+      bash -c "pip install -r requirements.txt && python init_jenkins.py && python build.py"
+    depends_on:
+      jenkins:
+        condition: service_healthy
+
+volumes:
+  jenkins_home:
+    driver: local

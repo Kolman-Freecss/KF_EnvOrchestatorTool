@@ -1,0 +1,16 @@
+# Terraform files
+*.tfstate
+*.tfstate.backup
+*.tfplan
+*.lock.hcl
+**/.terraform/providers/*
+
+# Ssh keys
+*.pem
+
+# Ignore jenkins_plugins folder except .gitkeep
+**/jenkins_plugins/*
+!**/jenkins_plugins/.gitkeep
+
+# Ignore .env/local.env files
+.env/local.env

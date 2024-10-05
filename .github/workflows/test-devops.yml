@@ -1,0 +1,52 @@
+name: Test Release flow with Docker-compose
+
+on:
+  push:
+    branches:
+      - master
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Environment to deploy'
+        required: true
+        default: 'dev'
+        options:
+          - dev
+
+jobs:
+
+  test-docker:
+    runs-on: ubuntu-latest
+
+    services:
+      docker:
+        image: docker:19.03.12
+        options: --privileged # To execute Docker on Github Actions
+        ports:
+          - 8080:8080
+        volumes:
+          - /var/run/docker.sock:/var/run/docker.sock
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v3
+
+      - name: Set up Docker Compose
+        run: sudo apt-get update && sudo apt-get install docker-compose -y
+
+      - name: Run Docker Compose
+        working-directory: src/local
+        run: docker-compose up -d
+
+      - name: Wait for services to be ready
+        run: sleep 10
+
+      - name: Run Tests
+        run: |
+          # Here we run the test commands, e.g. to check that the services are running
+          curl --fail http://localhost:8080 || exit 1 # Basic test to check if Jenkins is running
+
+      - name: Tear down Docker Compose
+        if: always()
+        working-directory: src/local
+        run: docker-compose down
