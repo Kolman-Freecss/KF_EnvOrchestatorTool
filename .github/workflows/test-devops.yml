@@ -35,7 +35,7 @@ jobs:
         run: sudo apt-get update && sudo apt-get install docker-compose -y
 
       - name: Run Docker Compose
-        working-directory: src/local
+        working-directory: src/env.local
         run: docker-compose up -d
 
       - name: Wait for services to be ready
@@ -48,5 +48,5 @@ jobs:
 
       - name: Tear down Docker Compose
         if: always()
-        working-directory: src/local
+        working-directory: src/env.local
         run: docker-compose down

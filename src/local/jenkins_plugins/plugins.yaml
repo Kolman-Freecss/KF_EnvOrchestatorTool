@@ -1,0 +1,8 @@
+jenkins:
+  systemMessage: "Jenkins configured by JCasC"
+  plugins:
+    required:
+      - git
+      - workflow-aggregator
+      - pipeline
+      - docker

@@ -1,5 +1,5 @@
 #!/bin/bash
 
-# Execute the python script
+# Execute the main script
 python3 /app/build.py
 

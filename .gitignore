@@ -11,9 +11,10 @@
 # Ignore jenkins_plugins folder except .gitkeep
 **/jenkins_plugins/*
 !**/jenkins_plugins/.gitkeep
+!**/jenkins_plugins/plugins.yaml
 
-# Ignore .env/local.env files
-.env/local.env
+# Ignore .env/env.local.env files
+.env/env.local
 
 # Ignore RSA temp files
 *_rsa*

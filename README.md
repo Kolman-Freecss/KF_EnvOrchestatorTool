@@ -212,7 +212,7 @@ docker push kolmanfreecss/jenkins-git
 
 - Use `dos2unix` to convert the scripts to Unix format.
     - ```bash
-      dos2unix YOUR_SCRIPT.sh
+      dos2unix YOUR_SCRIPT.helpers
       ```
       
 ## AWS
