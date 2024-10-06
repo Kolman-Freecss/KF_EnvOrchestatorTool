@@ -24,7 +24,7 @@ def get_jenkins_crumb() -> tuple[str, str]:
     """
     crumb_response = requests.get(
         f'{config_module.config.get(config_module.ConfigKeys.JENKINS_URL)}/crumbIssuer/api/xml?xpath=concat(//crumbRequestField,":",//crumb)',
-        auth=(config_module.config.get(config_module.ConfigKeys.JENKINS_USER), config_module.config.get(config_module.ConfigKeys.PAT_JENKINS))
+        auth=(config_module.config.get(config_module.ConfigKeys.JENKINS_USER), config_module.config.get(config_module.ConfigKeys.JENKINS_PASS))
     )
 
     if crumb_response.status_code != 200:
@@ -84,17 +84,20 @@ def build_credentials(credential_type: CredentialsType) -> any:
     else:
         raise ValueError("Unsupported credential type")
 
+    print(f'build_credentials:: Fetching Jenkins crumb... to build Credentials: {credential_type}')
     crumb_field, crumb_value = get_jenkins_crumb()
 
     response = requests.post(
         f'{config_module.config.get(config_module.ConfigKeys.JENKINS_URL)}/credentials/store/system/domain/_/createCredentials',
-        auth=(config_module.config.get(config_module.ConfigKeys.JENKINS_USER), config_module.config.get(config_module.ConfigKeys.PAT_JENKINS)),
+        auth=(config_module.config.get(config_module.ConfigKeys.JENKINS_USER), config_module.config.get(config_module.ConfigKeys.JENKINS_PASS)),
         data=credentials,
         headers={
             'Content-Type': 'application/xml',
             crumb_field: crumb_value  # Add crumb to headers
         }
     )
+
+    # jenkins_service.create_credential(folder_name='system', config_xml=credentials, domain_name='')
 
     if response.status_code == 200:
         print('Credentials created successfully')

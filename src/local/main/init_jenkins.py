@@ -9,7 +9,9 @@ from src.local.main.services import CredentialsType
 print(f"JENKINS INFO -> Jenkins URL: {config_module.get(config_module.ConfigKeys.JENKINS_URL)}, Username: {config_module.get(config_module.ConfigKeys.JENKINS_USER)}, API Token: {config_module.get(config_module.ConfigKeys.JENKINS_PASS)}")
 
 # ----------- Generate SSH key pair -----------
+print('Getting SSH key...')
 private_key = services.get_ssh() # Get the private key from the SSH key pair to connect Jenkins node via SSH to the agent (machine defined)
+print('Building credentials SSH on Jenkins...')
 services.build_credentials(CredentialsType.SSH)
 
 # Jenkins version
@@ -77,14 +79,14 @@ try:
 
     ssh_port = 22
     ssh_user = config_module.get(config_module.ConfigKeys.JENKINS_USER)
-    ssh_credentials = private_key # private_key
+    ssh_credentials = config_module.get(config_module.ConfigKeys.AGENT_CREDENTIALS_SSH)
     ssh_agent_host = 'host.docker.internal'  # Is the host where Jenkins Docker is running
     print(f"SSH data -> Port: {ssh_port}, User: {ssh_user}, Credentials: {ssh_credentials}, Host: {ssh_agent_host}")
 
     params = {
         'port': ssh_port,
         'username': ssh_user,
-        'privateKey': ssh_credentials,
+        'credentialsId': ssh_credentials,
         'host': ssh_agent_host
     }
     print("Creating node with parameters")
@@ -98,6 +100,8 @@ try:
         launcher_params=params)
 
     print(f"Node '{node_name}' created successfully with Docker installation.")
+
+    # TODO: Init SSH Client on agent host
     start_jenkins_agent = './start_jenkins_agent.helpers'
     print(f'Now it will start the Jenkins agent with the following command: {start_jenkins_agent}')
     # subprocess.run(['bash', start_jenkins_agent], check=True)

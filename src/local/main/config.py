@@ -9,6 +9,7 @@ class ConfigKeys(str, Enum):
     JENKINS_PASS = 'JENKINS_PASS'
     PAT_JENKINS = 'PAT_JENKINS'
     JENKINS_CREDENTIALS_ID = 'JENKINS_CREDENTIALS_ID'
+    AGENT_CREDENTIALS_SSH = 'AGENT_CREDENTIALS_SSH'
 
 
 # Global variables
@@ -21,7 +22,7 @@ else:
     env_files_path = os.path.join(project_root, '.env', f'env.{ENV}')
     ENV = 'local'
 
-# TODO - This is a hack to get around the fact that the sensitive data is not injected through the gitlab pipeline
+# Sensitive data not injected through pipelines
 config = dotenv_values(env_files_path)
 
 if ENV == 'prod':
@@ -31,6 +32,7 @@ if ENV == 'prod':
     jenkins_password = os.getenv(ConfigKeys.JENKINS_PASS.value)  # Get it from Jenkins > User > Configure
     jenkins_pat_token = os.getenv(ConfigKeys.PAT_JENKINS.value)
     jenkins_credentials_id = os.getenv(ConfigKeys.JENKINS_CREDENTIALS_ID.value)
+    agent_credentials_ssh = os.getenv(ConfigKeys.AGENT_CREDENTIALS_SSH.value)
 
     # Storing values in the config dictionary
     config[ConfigKeys.JENKINS_URL.value] = jenkins_url
@@ -38,6 +40,7 @@ if ENV == 'prod':
     config[ConfigKeys.JENKINS_PASS.value] = jenkins_password
     config[ConfigKeys.PAT_JENKINS.value] = jenkins_pat_token
     config[ConfigKeys.JENKINS_CREDENTIALS_ID.value] = jenkins_credentials_id
+    config[ConfigKeys.AGENT_CREDENTIALS_SSH.value] = agent_credentials_ssh
 
 def get(key: str) -> str:
     return config.get(key)
