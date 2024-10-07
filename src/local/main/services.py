@@ -69,7 +69,7 @@ def build_ssh_credentials(force: bool = False) -> any:
     """
     private_key = get_ssh(force)
 
-    id_value = f"{config_module.config.get(config_module.ConfigKeys.JENKINS_CREDENTIALS_ID)}-ssh"
+    id_value = f"{config_module.config.get(config_module.ConfigKeys.AGENT_CREDENTIALS_SSH)}"
     credentials = f'''<?xml version='1.1' encoding='UTF-8'?>
     <com.cloudbees.jenkins.plugins.sshcredentials.impl.BasicSSHUserPrivateKey>
       <scope>GLOBAL</scope>
