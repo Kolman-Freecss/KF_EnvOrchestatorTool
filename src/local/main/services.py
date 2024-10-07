@@ -6,12 +6,17 @@ from enum import Enum
 import jenkins
 import requests
 
-import src.local.main.config as config_module
+import config as config_module
 
-# Connect to the Jenkins server
-jenkins_service = jenkins.Jenkins(config_module.get(config_module.ConfigKeys.JENKINS_URL),
-                                  config_module.get(config_module.ConfigKeys.JENKINS_USER),
-                                  config_module.get(config_module.ConfigKeys.JENKINS_PASS))
+print(f"Connecting to Jenkins. Connection Data -> URL: {config_module.get(config_module.ConfigKeys.JENKINS_URL)}, User: {config_module.get(config_module.ConfigKeys.JENKINS_USER)}, API Token: {config_module.get(config_module.ConfigKeys.JENKINS_PASS)}")
+
+try:
+    # Connect to the Jenkins server
+    jenkins_service = jenkins.Jenkins(config_module.get(config_module.ConfigKeys.JENKINS_URL),
+                                      config_module.get(config_module.ConfigKeys.JENKINS_USER),
+                                      config_module.get(config_module.ConfigKeys.JENKINS_PASS))
+except Exception as e:
+    print(f"Error connecting to Jenkins: {e}")
 
 class CredentialsType(str, Enum):
     USER = 'USER'

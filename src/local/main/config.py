@@ -17,10 +17,22 @@ config = {}
 ENV = os.getenv('ENV') # Provided by Github Actions or Environment Variables
 if ENV == 'prod':
     env_files_path = '<cloud-config>'
+elif ENV == 'docker-local':
+    project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '../')) # .. This avoid to duplicate our .env in src folder "app/.env"
+    if project_root.endswith(('/')):
+        project_root = project_root[:-1]
+    env_files_path = os.path.join(project_root, '.env', f'env.{ENV}')
+    if ENV == '' or ENV is None:
+        ENV = 'local'
 else:
     project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '../../..'))
+    if project_root.endswith(('/')):
+        project_root = project_root[:-1]
     env_files_path = os.path.join(project_root, '.env', f'env.{ENV}')
-    ENV = 'local'
+    if ENV == '' or ENV is None:
+        ENV = 'local'
+
+print (f"ENV: {ENV}, PROJECT_ROOT: {project_root}, ENV_FILES_PATH: {env_files_path}")
 
 # Sensitive data not injected through pipelines
 config = dotenv_values(env_files_path)

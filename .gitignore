@@ -15,6 +15,10 @@
 
 # Ignore .env/env.local.env files
 .env/env.local
+.env/env.docker-local
 
 # Ignore RSA temp files
 *_rsa*
+
+# Python temp files
+*.pyc

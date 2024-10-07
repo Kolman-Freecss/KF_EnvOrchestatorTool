@@ -29,14 +29,14 @@ RUN /app/venv/bin/pip install --no-cache-dir -r /app/requirements.txt
 
 # ---------- JENKINS DEPS ----------
 
-COPY jenkins.yaml /var/jenkins_home/casc.yaml
+COPY jenkins_plugins/plugins.yaml /var/jenkins_home/casc.yaml
 ENV CASC_JENKINS_CONFIG=/var/jenkins_home/casc.yaml
 
 # Copy the shell script that installs dependencies
 COPY jenkins_install_deps.sh /usr/local/bin/jenkins_install_deps.sh
 
 # Ensure the shell scripts are executable
-RUN chmod +x /usr/env.local/bin/jenkins_install_deps.helpers
+RUN chmod +x /usr/local/bin/jenkins_install_deps.sh
 
 # Set the virtual environment as the default for Python
 ENV PATH="/app/venv/bin:$PATH"
@@ -44,7 +44,7 @@ ENV PATH="/app/venv/bin:$PATH"
 RUN echo "Before executing the shell script"
 
 # Execute the dependency installation script
-RUN /usr/env.local/bin/jenkins_install_deps.helpers
+RUN /usr/local/bin/jenkins_install_deps.sh
 
 # ----------------------------------------
 
@@ -53,6 +53,6 @@ RUN echo "After executing the shell script and before executing the Python scrip
 RUN ls -l /app
 
 # Execute the copied shell script
-#RUN /app/build.helpers
+#RUN /app/build.sh
 
 RUN echo "After executing the Python script"
