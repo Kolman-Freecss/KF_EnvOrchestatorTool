@@ -12,7 +12,7 @@ def fetch():
 
     # ----------- Generate SSH key pair -----------
     print('Getting SSH key...')
-    private_key = services.get_ssh() # Get the private key from the SSH key pair to connect Jenkins node via SSH to the agent (machine defined)
+    services.get_ssh() # Get the private key from the SSH key pair to connect Jenkins node via SSH to the agent (machine defined)
     services.build_credentials(CredentialsType.SSH)
 
     # Jenkins version

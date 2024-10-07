@@ -61,29 +61,34 @@ def build_user_credentials() -> any:
     '''
     return credentials
 
-def build_ssh_credentials() -> any:
+def build_ssh_credentials(force: bool = False) -> any:
     """
     Create SSH credentials in Jenkins
+    :param force: Flag to force the creation of credentials even if they already exist
     :return:
     """
-    private_key = get_ssh()
+    private_key = get_ssh(force)
 
     id_value = f"{config_module.config.get(config_module.ConfigKeys.JENKINS_CREDENTIALS_ID)}-ssh"
     credentials = f'''<?xml version='1.1' encoding='UTF-8'?>
-    <com.cloudbees.plugins.credentials.impl.SSHUserPrivateKey>
+    <com.cloudbees.jenkins.plugins.sshcredentials.impl.BasicSSHUserPrivateKey>
       <scope>GLOBAL</scope>
       <id>{id_value}</id>
       <username>{config_module.config.get(config_module.ConfigKeys.JENKINS_USER)}</username>
-      <privateKey>{private_key}</privateKey>
+      <privateKeySource class="com.cloudbees.jenkins.plugins.sshcredentials.impl.BasicSSHUserPrivateKey$DirectEntryPrivateKeySource">
+        <privateKey>{private_key}</privateKey>
+      </privateKeySource>
       <description>SSH Credentials to access GitHub</description>
-    </com.cloudbees.plugins.credentials.impl.SSHUserPrivateKey>
+    </com.cloudbees.jenkins.plugins.sshcredentials.impl.BasicSSHUserPrivateKey>
     '''
+    print(f'BUILD SSH CREDENTIALS:: XML Document: {credentials}')
     return credentials
 
 
-def build_credentials(credential_type: CredentialsType) -> any:
+def build_credentials(credential_type: CredentialsType, force: bool = False) -> any:
     """
     Create credentials in Jenkins based on the type specified
+    :param force:  Flag to force the creation of credentials even if they already exist
     :param credential_type: CredentialType Enum specifying the type of credentials
     :return:
     """
@@ -92,7 +97,7 @@ def build_credentials(credential_type: CredentialsType) -> any:
     if credential_type == CredentialsType.USER:
         credentials = build_user_credentials()
     elif credential_type == CredentialsType.SSH:
-        credentials = build_ssh_credentials()
+        credentials = build_ssh_credentials(force)
     else:
         raise ValueError("Unsupported credential type")
 
@@ -114,10 +119,13 @@ def build_credentials(credential_type: CredentialsType) -> any:
 
     if response.status_code == 200:
         print('Credentials created successfully')
+    elif not force:
+        print(f'Error creating credentials status code: {response.status_code}, message: {response.text}, \n retrying with force flag')
+        build_credentials(credential_type, force=True)
     else:
-        print(f'Error creating credentials: {response.text}')
+        print(f'Error creating credentials status code: {response.status_code}, message: {response.text}')
 
-def get_ssh() -> str:
+def get_ssh(force: bool = False) -> str:
     """
     Get SSH credentials
     :return: Private key if it exists; otherwise, generates a new one and returns it.
@@ -125,7 +133,7 @@ def get_ssh() -> str:
     ssh_dir = os.path.expanduser('~/.ssh')
     ssh_key_path = os.path.join(ssh_dir, 'id_rsa')
 
-    if os.path.exists(ssh_key_path) and os.path.getsize(ssh_key_path) > 0:
+    if os.path.exists(ssh_key_path) and os.path.getsize(ssh_key_path) > 0 and not force:
         try:
             with open(ssh_key_path, 'r') as private_key_file:
                 private_key = private_key_file.read()
@@ -135,12 +143,15 @@ def get_ssh() -> str:
             print(f"Private key not found at {ssh_key_path}. Generating a new key.")
             return create_ssh()
     else:
-        print(f"No SSH key found at {ssh_key_path}. Generating a new key.")
-        return create_ssh()
+        if force:
+            print(f"Force flag set. Generating a new key.")
+        else:
+            print(f"No SSH key found at {ssh_key_path}. Generating a new key.")
+        return create_ssh(force)
 
 
 
-def create_ssh() -> str:
+def create_ssh(force: bool = False) -> str:
     """
     Generate an SSH key pair if it does not exist.
     :return: The private key as a string. None if the private key is not found.
@@ -154,9 +165,13 @@ def create_ssh() -> str:
         print(f"Directory {ssh_dir} created.")
 
     # Check if the SSH key already exists
-    if os.path.exists(ssh_key_path) and os.path.getsize(ssh_key_path) > 0:
+    if os.path.exists(ssh_key_path) and os.path.getsize(ssh_key_path) > 0 and not force:
         print(f"SSH key pair already exists at {ssh_key_path}.")
         return get_ssh()  # Return the existing key
+
+    if force:
+        print("Force flag set. Deleting existing SSH key pair.")
+        os.remove(ssh_key_path)
 
     print("Generating an SSH key pair...")
     script_path = 'helpers/gen_ssh.sh'

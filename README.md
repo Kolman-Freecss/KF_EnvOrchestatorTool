@@ -214,6 +214,8 @@ docker push kolmanfreecss/jenkins-git
     - ```bash
       dos2unix YOUR_SCRIPT.helpers
       ```
+- Create SSH credentials on Jenkins through Python with Jenkins API. Problem with the XML tag using incorrect format for the implementation
+  - Solution: Use `com.cloudbees.jenkins.plugins.sshcredentials.impl.BasicSSHUserPrivateKey`
       
 ## AWS
 - Check SSH key permissions to connect to EC2 instance.
