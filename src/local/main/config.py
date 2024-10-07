@@ -7,9 +7,10 @@ class ConfigKeys(str, Enum):
     JENKINS_URL = 'JENKINS_URL'
     JENKINS_USER = 'JENKINS_USER'
     JENKINS_PASS = 'JENKINS_PASS'
-    PAT_JENKINS = 'PAT_JENKINS'
+    PAT_JENKINS = 'PAT_JENKINS' # Personal Access Token (PAT) used for GitHub authentication
     JENKINS_CREDENTIALS_ID = 'JENKINS_CREDENTIALS_ID'
-    AGENT_CREDENTIALS_SSH = 'AGENT_CREDENTIALS_SSH'
+    AGENT_CREDENTIALS_SSH = 'AGENT_CREDENTIALS_SSH' # SSH key used to connect Jenkins node to the agent
+    JENKINS_API_TOKEN = 'JENKINS_API_TOKEN' # Jenkins API Token used instead of password & Crumb
 
 
 # Global variables
@@ -45,6 +46,7 @@ if ENV == 'prod':
     jenkins_pat_token = os.getenv(ConfigKeys.PAT_JENKINS.value)
     jenkins_credentials_id = os.getenv(ConfigKeys.JENKINS_CREDENTIALS_ID.value)
     agent_credentials_ssh = os.getenv(ConfigKeys.AGENT_CREDENTIALS_SSH.value)
+    jenkins_api_token = os.getenv(ConfigKeys.JENKINS_API_TOKEN.value)
 
     # Storing values in the config dictionary
     config[ConfigKeys.JENKINS_URL.value] = jenkins_url
@@ -53,6 +55,7 @@ if ENV == 'prod':
     config[ConfigKeys.PAT_JENKINS.value] = jenkins_pat_token
     config[ConfigKeys.JENKINS_CREDENTIALS_ID.value] = jenkins_credentials_id
     config[ConfigKeys.AGENT_CREDENTIALS_SSH.value] = agent_credentials_ssh
+    config[ConfigKeys.JENKINS_API_TOKEN] = jenkins_api_token
 
 def get(key: str) -> str:
     return config.get(key)

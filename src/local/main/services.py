@@ -27,17 +27,20 @@ def get_jenkins_crumb() -> tuple[str, str]:
     Get Jenkins crumb to add to headers
     :return: Tuple with crumb field and crumb value
     """
+    crumb_url = f'{config_module.config.get(config_module.ConfigKeys.JENKINS_URL)}/crumbIssuer/api/xml?xpath=concat(//crumbRequestField,":",//crumb)'
+    print("Crumb data: URL: ", crumb_url, " User: ", config_module.config.get(config_module.ConfigKeys.JENKINS_USER), " Pass: ", config_module.config.get(config_module.ConfigKeys.JENKINS_PASS))
     crumb_response = requests.get(
-        f'{config_module.config.get(config_module.ConfigKeys.JENKINS_URL)}/crumbIssuer/api/xml?xpath=concat(//crumbRequestField,":",//crumb)',
+        crumb_url,
         auth=(config_module.config.get(config_module.ConfigKeys.JENKINS_USER), config_module.config.get(config_module.ConfigKeys.JENKINS_PASS))
     )
 
     if crumb_response.status_code != 200:
-        print("Error fetching crumb:", crumb_response.text)
+        print("Error fetching crumb -> Received status code: ", crumb_response.status_code, " with message: ", crumb_response.text)
         exit(1)
 
     # Parse crumb response
     crumb_field, crumb_value = crumb_response.text.split(':')
+    print(f'Crumb field: {crumb_field}, Crumb value: {crumb_value}. Original response -> {crumb_response.text}')
     return crumb_field, crumb_value
 
 def build_user_credentials() -> any:
@@ -45,10 +48,12 @@ def build_user_credentials() -> any:
     Create username/password credentials in Jenkins
     :return:
     """
+
+    id_value = f"{config_module.config.get(config_module.ConfigKeys.JENKINS_CREDENTIALS_ID)}-user"
     credentials = f'''<?xml version='1.1' encoding='UTF-8'?>
     <com.cloudbees.plugins.credentials.impl.UsernamePasswordCredentialsImpl>
       <scope>GLOBAL</scope>
-      <id>{config_module.config.get(config_module.ConfigKeys.JENKINS_CREDENTIALS_ID)}</id>
+      <id>{id_value}</id>
       <username>{config_module.config.get(config_module.ConfigKeys.JENKINS_USER)}</username>
       <password>{config_module.config.get(config_module.ConfigKeys.PAT_JENKINS)}</password>
       <description>Credentials to access GitHub with PAT</description>
@@ -63,10 +68,11 @@ def build_ssh_credentials() -> any:
     """
     private_key = get_ssh()
 
+    id_value = f"{config_module.config.get(config_module.ConfigKeys.JENKINS_CREDENTIALS_ID)}-ssh"
     credentials = f'''<?xml version='1.1' encoding='UTF-8'?>
     <com.cloudbees.plugins.credentials.impl.SSHUserPrivateKey>
       <scope>GLOBAL</scope>
-      <id>{config_module.config.get(config_module.ConfigKeys.JENKINS_CREDENTIALS_ID)}</id>
+      <id>{id_value}</id>
       <username>{config_module.config.get(config_module.ConfigKeys.JENKINS_USER)}</username>
       <privateKey>{private_key}</privateKey>
       <description>SSH Credentials to access GitHub</description>
@@ -81,6 +87,7 @@ def build_credentials(credential_type: CredentialsType) -> any:
     :param credential_type: CredentialType Enum specifying the type of credentials
     :return:
     """
+    print(f'build_credentials:: Building credentials: {credential_type}')
     # Determine which credentials to build based on the credential_type
     if credential_type == CredentialsType.USER:
         credentials = build_user_credentials()
@@ -89,16 +96,17 @@ def build_credentials(credential_type: CredentialsType) -> any:
     else:
         raise ValueError("Unsupported credential type")
 
-    print(f'build_credentials:: Fetching Jenkins crumb... to build Credentials: {credential_type}')
-    crumb_field, crumb_value = get_jenkins_crumb()
+# TODO: Add crumb to headers working or API Token automated
+    # print(f'build_credentials:: Fetching Jenkins crumb... to build Credentials: {credential_type}')
+    # crumb_field, crumb_value = get_jenkins_crumb()
 
     response = requests.post(
         f'{config_module.config.get(config_module.ConfigKeys.JENKINS_URL)}/credentials/store/system/domain/_/createCredentials',
-        auth=(config_module.config.get(config_module.ConfigKeys.JENKINS_USER), config_module.config.get(config_module.ConfigKeys.JENKINS_PASS)),
+        auth=(config_module.config.get(config_module.ConfigKeys.JENKINS_USER), config_module.config.get(config_module.ConfigKeys.JENKINS_API_TOKEN)),
         data=credentials,
         headers={
             'Content-Type': 'application/xml',
-            crumb_field: crumb_value  # Add crumb to headers
+            # crumb_field: crumb_value  # Add crumb to headers
         }
     )
 
