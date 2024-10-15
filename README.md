@@ -9,16 +9,19 @@ This tool is used to serve an automated environment in local or cloud platform t
 - [Local installation](#local-installation)
     - [Configure Jenkins](#configure-jenkins)
     - [Configure Environment Variables to execute main.py](#configure-environment-variables-to-execute-mainpy)
+    - [Configure SSH](#configure-ssh)
 - [AWS Configuration](#aws-configuration)
     - [Trigger Terraform pipeline](#trigger-terraform-pipeline)
     - [Connect to EC2 instance](#connect-to-ec2-instance)
 - [Configuration](#configuration)
 - [Dependencies](#dependencies)
 - [Tech stacks CI/CD](#tech-stacks-ci/cd)
+- [Tips](#tips)
 - [Troubleshoting](#troubleshoting)
     - [Jenkins](#jenkins)
     - [Scripts](#scripts)
     - [AWS](#aws)
+    - [Settings](#settings)
 
 # Systems
 
@@ -54,6 +57,23 @@ JENKINS_URL=<YOUR_JENKINS_URL>
 JENKINS_USER=<YOUR_JENKINS_USER>
 JENKINS_PASS=<YOUR_JENKINS_PASSWORD>
 ACCESS_TOKEN=<YOUR_GITHUB_ACCESS_TOKEN>
+```
+
+### Configure SSH
+
+- Install OpenSSH Server on your local machine.
+- Start the service.
+
+```bash
+# Windows
+Start-Service sshd
+```
+
+- (Optional) Try to connect from container to your local machine with SSH.
+
+```bash
+docker exec -it jenkins-git bash
+ssh -i /var/jenkins_home/.ssh/id_rsa admin@host.docker.internal -vvv
 ```
 
 ## AWS Configuration
@@ -175,6 +195,11 @@ docker push kolmanfreecss/jenkins-git
 - Shellscript
 - Terraform
 
+# Tips
+
+- Check Event Viewer on Windows to see if SSH Server is running properly.
+  - `Applications and Services Logs > OpenSSH > Operational`
+
 # Troubleshoting
 
 ## Jenkins
@@ -222,6 +247,29 @@ docker push kolmanfreecss/jenkins-git
     - `chmod 400 my-ssh-key.pem`
     - Remove permissions to other group users or another users because AWS won't let you connect to the EC2 instance if
       the permissions are too permissive.
+
+## Settings
+- Install SSH Server on local machine.
+    - If you have a Windows Server you can follow Microsoft official documentation to install OpenSSH Server. Or check https://github.com/PowerShell/Win32-OpenSSH/releases
+    - Also you could use WSL to install OpenSSH Server.
+      - ```bash
+        sudo apt-get install openssh-server
+        ```
+    - Configure permissions to the id_rsa file to not be too permissive.
+        - ```bash
+          chmod 600 /var/jenkins_home/.ssh/id_rsa
+          ```
+    - Create an authorized_keys file in the .ssh folder with the public key of the local machine.
+        - ```bash
+          cat /var/jenkins_home/.ssh/id_rsa.pub >> /var/jenkins_home/.ssh/authorized_keys
+          ```
+    - Create an sshd_config file in the .ssh folder with the following IMPORTANT configurations UNCCOMMENTED.:
+        - ```bash
+          Port 22
+          AuthorizedKeysFile /var/jenkins_home/.ssh/authorized_keys
+          PubkeyAuthentication yes
+          PasswordAuthentication no
+          ```
 
 ---
 

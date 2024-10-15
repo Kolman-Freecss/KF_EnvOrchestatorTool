@@ -5,13 +5,12 @@ services:
     build:
       context: .  # Path where the Dockerfile is located
       dockerfile: Dockerfile  # Name of the Dockerfile
-    image: kolmanfreecss/jenkins-git:latest
     container_name: kf-jenkins
     user: root
     privileged: true
     ports:
       - "8080:8080"  # UI Jenkins
-      - "50000:50000" # Jenkins agents
+      - "50001:50000" # Jenkins agents
     environment:
       - TINI_SUBREAPER=1  # Register Tini as a subreaper (to not need to use Tini as PID 1)
     volumes:

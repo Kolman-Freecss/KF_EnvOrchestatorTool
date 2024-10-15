@@ -50,13 +50,14 @@ def build_user_credentials() -> any:
     """
 
     id_value = f"{config_module.config.get(config_module.ConfigKeys.JENKINS_CREDENTIALS_ID)}-user"
+    description_value = f"Credentials to access GitHub with PAT with {id_value}"
     credentials = f'''<?xml version='1.1' encoding='UTF-8'?>
     <com.cloudbees.plugins.credentials.impl.UsernamePasswordCredentialsImpl>
       <scope>GLOBAL</scope>
       <id>{id_value}</id>
       <username>{config_module.config.get(config_module.ConfigKeys.JENKINS_USER)}</username>
       <password>{config_module.config.get(config_module.ConfigKeys.PAT_JENKINS)}</password>
-      <description>Credentials to access GitHub with PAT</description>
+      <description>{description_value}</description>
     </com.cloudbees.plugins.credentials.impl.UsernamePasswordCredentialsImpl>
     '''
     return credentials
@@ -70,6 +71,7 @@ def build_ssh_credentials(force: bool = False) -> any:
     private_key = get_ssh(force)
 
     id_value = f"{config_module.config.get(config_module.ConfigKeys.AGENT_CREDENTIALS_SSH)}"
+    description_value = f"SSH Credentials to access GitHub with {id_value}"
     credentials = f'''<?xml version='1.1' encoding='UTF-8'?>
     <com.cloudbees.jenkins.plugins.sshcredentials.impl.BasicSSHUserPrivateKey>
       <scope>GLOBAL</scope>
@@ -78,10 +80,10 @@ def build_ssh_credentials(force: bool = False) -> any:
       <privateKeySource class="com.cloudbees.jenkins.plugins.sshcredentials.impl.BasicSSHUserPrivateKey$DirectEntryPrivateKeySource">
         <privateKey>{private_key}</privateKey>
       </privateKeySource>
-      <description>SSH Credentials to access GitHub</description>
+      <description>{description_value}</description>
     </com.cloudbees.jenkins.plugins.sshcredentials.impl.BasicSSHUserPrivateKey>
     '''
-    print(f'BUILD SSH CREDENTIALS:: XML Document: {credentials}')
+    print(f'BUILD SSH CREDENTIALS:: XML Document: ***** ') # {credentials}')
     return credentials
 
 
@@ -120,10 +122,10 @@ def build_credentials(credential_type: CredentialsType, force: bool = False) -> 
     if response.status_code == 200:
         print('Credentials created successfully')
     elif not force:
-        print(f'Error creating credentials status code: {response.status_code}, message: {response.text}, \n retrying with force flag')
+        print(f'ERROR creating credentials status code: {response.status_code}, message: {response.text}, \n retrying with force flag')
         build_credentials(credential_type, force=True)
     else:
-        print(f'Error creating credentials status code: {response.status_code}, message: {response.text}')
+        print(f'ERROR creating credentials status code: {response.status_code}, message: {response.text}')
 
 def get_ssh(force: bool = False) -> str:
     """
