@@ -199,6 +199,8 @@ docker push kolmanfreecss/jenkins-git
 
 - Check Event Viewer on Windows to see if SSH Server is running properly.
   - `Applications and Services Logs > OpenSSH > Operational`
+- Remember that Jenkins needs SSH private key and the local machine needs its public key to validate the connection stored in
+  the `authorized_keys` file.
 
 # Troubleshoting
 
