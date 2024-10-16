@@ -1,3 +1,6 @@
+import platform
+import subprocess
+
 import jenkins
 
 import config as config_module
@@ -25,47 +28,6 @@ def fetch():
     node_description = 'Node configured with Docker'
     remote_fs = '/var/jenkins_home'
     labels = 'docker'
-    num_executors = 2
-
-    # Script to install Docker on the node
-    install_docker_script = '''#!/bin/bash
-    if ! [ -x "$(command -v docker)" ]; then
-        echo "Docker is not installed. Proceeding to install Docker..."
-        curl -fsSL https://get.docker.com -o get-docker.helpers
-        helpers get-docker.helpers
-        sudo usermod -aG docker jenkins  # Add the Jenkins user to the Docker group
-        echo "Docker installed successfully."
-    else
-        echo "Docker is already installed."
-    fi
-    '''
-
-    # Node configuration with the Docker installation script
-    # node_config_xml = f'''<?xml version="1.0" encoding="UTF-8"?>
-    # <slave>
-    #   <name>{node_name}</name>
-    #   <description>{node_description}</description>
-    #   <remoteFS>{remote_fs}</remoteFS>
-    #   <numExecutors>{num_executors}</numExecutors>
-    #   <mode>EXCLUSIVE</mode>
-    #   <retentionStrategy class="hudson.slaves.RetentionStrategy$Always"/>
-    #   <launcher class="hudson.slaves.CommandLauncher">
-    #     <command>{install_docker_script}</command>
-    #   </launcher>
-    #   <label>{labels}</label>
-    #   <nodeProperties/>
-    # </slave>'''
-    node_config_xml = f'''<?xml version="1.0" encoding="UTF-8"?>
-    <slave>
-      <name>{node_name}</name>
-      <description>{node_description}</description>
-      <remoteFS>{remote_fs}</remoteFS>
-      <numExecutors>{num_executors}</numExecutors>
-      <mode>EXCLUSIVE</mode>
-      <retentionStrategy class="hudson.slaves.RetentionStrategy$Always"/>
-      <label>{labels}</label>
-      <nodeProperties/>
-    </slave>'''
 
     # Create the node in Jenkins
     try:
@@ -102,11 +64,17 @@ def fetch():
 
         print(f"Node '{node_name}' created successfully with Docker installation.")
 
-        # TODO: Init SSH Client on agent host
-        start_jenkins_agent = './start_jenkins_agent.helpers'
-        print(f'Now it will start the Jenkins agent with the following command: {start_jenkins_agent}')
-        # subprocess.run(['bash', start_jenkins_agent], check=True)
-        # print('Jenkins agent started successfully.')
+        start_ssh_jenkins_agent = './helpers/start_ssh_jenkins_agent.sh'
+        print(f'Now it will start the Jenkins agent with the following command: {start_ssh_jenkins_agent}')
+        # Check the OS and run the corresponding script
+        if platform.system() == 'Windows':
+            start_ssh_jenkins_agent = './helpers/start_ssh_jenkins_agent.bat'
+            print(f"Running the batch script: {start_ssh_jenkins_agent}")
+            # Execute the batch script for Windows
+            subprocess.run([start_ssh_jenkins_agent], check=True, shell=True)
+        else:
+            print(f"Running the shell script: {start_ssh_jenkins_agent}")
+            subprocess.run(['bash', start_ssh_jenkins_agent], check=True)
 
     except jenkins.JenkinsException as e:
         print(f"Error creating node: {e}")
