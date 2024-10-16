@@ -13,7 +13,7 @@
             stage('Clone Repo') {
                 steps {
                     git branch: 'master',
-                        url: 'https://github.com/Kolman-Freecss/KF_EnvOrchestatorTool.git',
+                        url: 'https://github.com/Kolman-Freecss/Hackathon-DataHK01-Spring.git',
                         credentialsId: 'github-credentials'
                 }
             }
