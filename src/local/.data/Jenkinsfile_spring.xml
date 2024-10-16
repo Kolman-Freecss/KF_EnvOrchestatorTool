@@ -1,6 +1,6 @@
 <?xml version='1.1' encoding='UTF-8'?>
 <flow-definition plugin="workflow-job@2.40">
-  <description>Pipeline de despliegue con Dockerfile embebido</description>
+  <description>Deploy pipeline with Docker in local Agent</description>
   <keepDependencies>false</keepDependencies>
   <properties/>
   <definition class="org.jenkinsci.plugins.workflow.cps.CpsFlowDefinition" plugin="workflow-cps@2.92">
@@ -14,20 +14,21 @@
                 steps {
                     git branch: 'master',
                         url: 'https://github.com/Kolman-Freecss/Hackathon-DataHK01-Spring.git',
-                        credentialsId: 'github-credentials'
+                        credentialsId: 'jenkins-credentials-user'
                 }
             }
             stage('Build Image Docker') {
                 steps {
                     script {
-                        sh 'docker build -t kf-spring-image .'  // Build the Dockerfile in the current directory
+                        bat 'docker pull ubuntu:22.04'
+                        bat 'docker build -t kf-spring-image .'  // Build the Dockerfile in the current directory
                     }
                 }
             }
             stage('Deploy container') {
                 steps {
                     script {
-                        sh 'docker run -d --name kf-spring -p 8081:8081 kf-spring-image'  // Launch the container with the image built
+                        bat 'docker run -d --name kf-spring -p 8081:8081 kf-spring-image'  // Launch the container with the image built
                     }
                 }
             }
