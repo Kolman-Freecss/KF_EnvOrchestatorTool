@@ -38,13 +38,13 @@ This tool is used to serve an automated environment in local or cloud platform t
 
 ### Configure Jenkins
 
-Config Jenkins on your local machine:
-
-- Initial password located at `/var/jenkins_home/secrets/initialAdminPassword`
-
 1. Execute `docker-compsoe.yml` from `.docker/local` folder.
 2. Go to `localhost:8080` and follow the instructions to configure Jenkins. (Create an initialAdminPassword)
 3. Install Git plugin for Jenkins. (This is necessary to trigger pipelines with SCM option enabled)
+
+Config Jenkins on your local machine:
+
+- Initial password located at `/var/jenkins_home/secrets/initialAdminPassword`
 
 ### Configure Environment Variables to execute main.py
 
@@ -59,10 +59,12 @@ JENKINS_PASS=<YOUR_JENKINS_PASSWORD>
 ACCESS_TOKEN=<YOUR_GITHUB_ACCESS_TOKEN>
 ```
 
+Note: ACCESS_TOKEN is necessary to pull the repositories configured in the pipelines from Github.
+
 ### Configure SSH
 
 - Install OpenSSH Server on your local machine.
-- Start the service.
+- (Optional: main.py automatically will start the OpenSSH Server if its installed) Start the service.
 
 ```bash
 # Windows

@@ -18,6 +18,9 @@ def fetch():
     services.get_ssh() # Get the private key from the SSH key pair to connect Jenkins node via SSH to the agent (machine defined)
     services.build_credentials(CredentialsType.SSH)
 
+    # ----------- Start SSH Server -----------
+    services.start_ssh_server()
+
     # Jenkins version
     user = services.jenkins_service.get_whoami()
     version = services.jenkins_service.get_version()

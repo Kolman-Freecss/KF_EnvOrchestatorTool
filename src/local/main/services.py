@@ -86,7 +86,6 @@ def build_ssh_credentials(force: bool = False) -> any:
     print(f'BUILD SSH CREDENTIALS:: XML Document: ***** ') # {credentials}')
     return credentials
 
-
 def build_credentials(credential_type: CredentialsType, force: bool = False) -> any:
     """
     Create credentials in Jenkins based on the type specified
@@ -151,8 +150,6 @@ def get_ssh(force: bool = False) -> str:
             print(f"No SSH key found at {ssh_key_path}. Generating a new key.")
         return create_ssh(force)
 
-
-
 def create_ssh(force: bool = False) -> str:
     """
     Generate an SSH key pair if it does not exist.
@@ -200,3 +197,23 @@ def create_ssh(force: bool = False) -> str:
     except FileNotFoundError:
         print(f"Private key not found at {ssh_key_path}.")
         return ""
+
+def start_ssh_server():
+    """
+    Start the SSH server
+    """
+    print("Starting SSH server...")
+    script_path = 'helpers/start_ssh_server.sh'
+
+    # Check the OS and run the corresponding script
+    if platform.system() == 'Windows':
+        script_path = os.path.abspath('helpers/start_ssh_server.bat')
+        print(f"Running the batch script: {script_path}")
+        # Execute the batch script for Windows
+        subprocess.run([script_path], check=True, shell=True)
+    else:
+        print(f"Running the shell script: {script_path}")
+        # Execute the shell script for Unix-like environments
+        subprocess.run(['bash', script_path], check=True)
+
+    print("SSH server started successfully.")
